@@ -1,0 +1,25 @@
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: public-test-route
+              uri: https://httpbin.org
+              predicates:
+                - Path=/api/**
+              filters:
+                - StripPrefix=1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
