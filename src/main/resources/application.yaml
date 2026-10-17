@@ -2,6 +2,10 @@
 server:
   port: 8080
 
+app:
+  gateway:
+    backend-uri: https://httpbin.org
+
 spring:
   application:
     name: api-gateway
@@ -11,8 +15,8 @@ spring:
       server:
         webflux:
           routes:
-            - id: public-test-route
-              uri: https://httpbin.org
+            - id: api-backend
+              uri: ${app.gateway.backend-uri}
               predicates:
                 - Path=/api/**
               filters:

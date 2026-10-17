@@ -1,0 +1,6 @@
+app:
+  gateway:
+    # Unreachable on purpose. RouteForwardingTest replaces this with the
+    # WireMock base URL before the context starts. A missing override fails
+    # on localhost instead of calling the default public backend.
+    backend-uri: http://127.0.0.1:9
