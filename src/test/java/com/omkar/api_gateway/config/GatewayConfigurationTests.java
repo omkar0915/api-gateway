@@ -27,7 +27,7 @@ class GatewayConfigurationTests {
 		assertThat(environment.getProperty("app.gateway.response-timeout")).isEqualTo("3s");
 
 		StepVerifier.create(routeLocator.getRoutes().filter(route -> "api-backend".equals(route.getId())))
-				.assertNext(route -> assertThat(route.getUri()).hasToString("https://httpbin.org"))
+				.assertNext(route -> assertThat(route.getUri()).hasScheme("https").hasHost("httpbin.org"))
 				.verifyComplete();
 	}
 

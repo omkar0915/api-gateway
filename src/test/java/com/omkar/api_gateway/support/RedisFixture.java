@@ -1,5 +1,6 @@
 package com.omkar.api_gateway.support;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 
@@ -76,12 +77,28 @@ public final class RedisFixture implements AutoCloseable {
 	}
 
 	private static boolean dockerAvailable() {
+		if (!dockerCommandPresent()) {
+			return false;
+		}
 		try {
 			return DockerClientFactory.instance().isDockerAvailable();
 		}
 		catch (RuntimeException exception) {
 			return false;
 		}
+	}
+
+	private static boolean dockerCommandPresent() {
+		String path = System.getenv("PATH");
+		if (path == null || path.isBlank()) {
+			return false;
+		}
+		for (String entry : path.split(File.pathSeparator)) {
+			if (new File(entry, "docker").isFile() || new File(entry, "docker.exe").isFile()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static int freePort() {

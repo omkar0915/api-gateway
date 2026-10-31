@@ -66,7 +66,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
 					|| current instanceof ConnectTimeoutException) {
 				return HttpStatus.GATEWAY_TIMEOUT.value();
 			}
-			if (current instanceof java.net.ConnectException || current instanceof PrematureCloseException) {
+			if (current instanceof java.net.SocketException || current instanceof PrematureCloseException) {
 				return HttpStatus.SERVICE_UNAVAILABLE.value();
 			}
 			if (current instanceof ResponseStatusException responseStatusException && responseStatus == null) {
