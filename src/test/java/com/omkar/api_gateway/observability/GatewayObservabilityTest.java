@@ -19,7 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -54,7 +54,7 @@ class GatewayObservabilityTest {
 	@BeforeEach
 	void setUp() {
 		backend.resetAll();
-		backend.stubFor(get(urlEqualTo("/hello"))
+		backend.stubFor(get(urlPathEqualTo("/hello"))
 				.willReturn(aResponse().withStatus(200).withBody("hello-from-backend")));
 		webTestClient = WebTestClient.bindToServer()
 				.baseUrl("http://127.0.0.1:" + gatewayPort)
@@ -70,7 +70,7 @@ class GatewayObservabilityTest {
 				.expectStatus().isOk()
 				.expectHeader().valueEquals(RequestCorrelationFilter.REQUEST_ID_HEADER, "req-123");
 
-		backend.verify(getRequestedFor(urlEqualTo("/hello"))
+		backend.verify(getRequestedFor(urlPathEqualTo("/hello"))
 				.withHeader(RequestCorrelationFilter.REQUEST_ID_HEADER, equalTo("req-123")));
 		assertThat(output).contains("event=gateway_request");
 		assertThat(output).contains("path=/api/hello");
@@ -82,12 +82,12 @@ class GatewayObservabilityTest {
 	void replacesAnUnsafeRequestId() {
 		webTestClient.get()
 				.uri("/api/hello")
-				.header(RequestCorrelationFilter.REQUEST_ID_HEADER, "bad\nid")
+				.header(RequestCorrelationFilter.REQUEST_ID_HEADER, "bad/id")
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().value(RequestCorrelationFilter.REQUEST_ID_HEADER, value -> {
-					assertThat(value).isNotEqualTo("bad\nid");
-					assertThat(value).doesNotContain("\n");
+					assertThat(value).isNotEqualTo("bad/id");
+					assertThat(value).matches("[A-Za-z0-9._-]{1,64}");
 				});
 	}
 

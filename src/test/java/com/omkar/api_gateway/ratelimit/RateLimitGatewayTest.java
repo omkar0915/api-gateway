@@ -4,6 +4,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.omkar.api_gateway.support.RedisFixture;
@@ -27,6 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class RateLimitGatewayTest {
 
+	private static final Logger log = LoggerFactory.getLogger(RateLimitGatewayTest.class);
+
 	private static final WireMockServer backend = new WireMockServer(
 			WireMockConfiguration.options().dynamicPort());
 
@@ -34,7 +39,7 @@ class RateLimitGatewayTest {
 
 	static {
 		backend.start();
-		System.out.println("Rate-limit Redis: " + redis.description());
+		log.info("Rate-limit Redis: {}", redis.description());
 	}
 
 	@DynamicPropertySource
