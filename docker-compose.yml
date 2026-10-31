@@ -1,0 +1,28 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  gateway:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      APP_GATEWAY_BACKEND_URI: https://httpbin.org
+      APP_GATEWAY_RATE_LIMIT_REPLENISH_RATE: "2"
+      APP_GATEWAY_RATE_LIMIT_BURST_CAPACITY: "2"
+      APP_GATEWAY_CONNECT_TIMEOUT_MS: "2000"
+      APP_GATEWAY_RESPONSE_TIMEOUT: 3s
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_TIMEOUT: 1s
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped

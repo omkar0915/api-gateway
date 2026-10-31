@@ -4,3 +4,15 @@ app:
     # WireMock base URL before the context starts. A missing override fails
     # on localhost instead of calling the default public backend.
     backend-uri: http://127.0.0.1:9
+
+management:
+  health:
+    redis:
+      enabled: false
+
+logging:
+  level:
+    org.springframework.cloud.gateway: WARN
+    org.springframework.web: WARN
+    reactor.netty: WARN
+

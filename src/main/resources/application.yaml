@@ -1,19 +1,33 @@
-
 server:
   port: 8080
 
 app:
   gateway:
-    backend-uri: https://httpbin.org
+    backend-uri: ${APP_GATEWAY_BACKEND_URI:https://httpbin.org}
+    rate-limit:
+      replenish-rate: ${APP_GATEWAY_RATE_LIMIT_REPLENISH_RATE:2}
+      burst-capacity: ${APP_GATEWAY_RATE_LIMIT_BURST_CAPACITY:2}
+    connect-timeout-ms: ${APP_GATEWAY_CONNECT_TIMEOUT_MS:2000}
+    response-timeout: ${APP_GATEWAY_RESPONSE_TIMEOUT:3s}
 
 spring:
   application:
     name: api-gateway
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 1s
+      connect-timeout: 1s
+
   cloud:
     gateway:
       server:
         webflux:
+          httpclient:
+            connect-timeout: ${app.gateway.connect-timeout-ms}
+            response-timeout: ${app.gateway.response-timeout}
           routes:
             - id: api-backend
               uri: ${app.gateway.backend-uri}
@@ -26,4 +40,46 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: api-gateway
+    description: API Gateway and Rate Limiter
+
+logging:
+  level:
+    root: INFO
+    com.omkar.api_gateway: INFO
+    org.springframework.cloud.gateway: INFO
+    reactor.netty.http.client: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} level=%-5p logger=%logger{36} %msg%n"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!test"
+  cloud:
+    gateway:
+      server:
+        webflux:
+          filter:
+            request-rate-limiter:
+              throw-on-limit: true
+          default-filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: "${app.gateway.rate-limit.replenish-rate}"
+                redis-rate-limiter.burstCapacity: "${app.gateway.rate-limit.burst-capacity}"
+                redis-rate-limiter.requestedTokens: "1"
+                key-resolver: "#{@clientIdKeyResolver}"
